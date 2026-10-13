@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <link rel="icon" href="data:,">
+  <title>Presentación interactiva – Sociología Política</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      color-scheme:dark;
+      --navy:#0a1428;--navy-2:#0d1a32;--navy-3:#14223a;--ink:#f4f0e7;--muted:#aeb8c7;
+      --gold:#d0ab86;--gold-hi:#e9d890;--line:rgba(255,255,255,.075);--line-2:rgba(255,255,255,.14);
+      --panel:rgba(15,28,51,.92);--shadow:0 34px 110px rgba(0,0,0,.42);--spring:cubic-bezier(.16,1.22,.34,1);
+    }
+    *{box-sizing:border-box}
+    html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050b16;color:var(--ink);font-family:"DM Sans",sans-serif}
+    button,a{font:inherit}button{touch-action:manipulation}
+    #viewport{position:fixed;inset:0;overflow:hidden;background:#050b16}
+    #viewport::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:72px 72px;opacity:.22}
+    #ambientGrid{position:fixed;z-index:0;inset:-8%;pointer-events:none;opacity:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:72px 72px;will-change:transform,opacity;transform:translate3d(0,0,0)}
+    #world{position:absolute;z-index:1;left:0;top:0;width:1px;height:1px;transform-origin:0 0;will-change:transform;backface-visibility:hidden;transform-style:preserve-3d}
+    #flightFX{position:fixed;z-index:35;inset:0;pointer-events:none;opacity:0;background:var(--navy);will-change:opacity;contain:paint;transform:translateZ(0)}
+    body.pseudo-fullscreen{position:fixed;inset:0;width:100vw;height:100vh;background:#050b16}body.pseudo-fullscreen #viewport{inset:0!important;z-index:100}body.pseudo-fullscreen #flightFX{z-index:135}body.pseudo-fullscreen #controls{z-index:150;bottom:max(18px,env(safe-area-inset-bottom))}body.pseudo-fullscreen #progress{z-index:151}body.pseudo-fullscreen #hint{z-index:140}body.pseudo-fullscreen #menu{z-index:170}
+    .slide{position:absolute;width:1440px;height:810px;overflow:hidden;background:var(--navy);color:var(--ink);box-shadow:var(--shadow);opacity:.08;filter:saturate(.35) brightness(.6);pointer-events:none;isolation:isolate;transition:opacity .34s ease;contain:layout paint style}
+    .slide[aria-hidden="true"]{visibility:hidden}.slide.active{opacity:1;filter:none;pointer-events:auto;visibility:visible}.slide.departing{opacity:.72;filter:none;pointer-events:none;visibility:visible}
+    .slide::after{content:"";position:absolute;inset:0;pointer-events:none;border:1px solid var(--line)}
+    .slide-inner{height:100%;padding:58px 70px 64px;display:flex;flex-direction:column;position:relative;z-index:3}
+    .slide-grid{position:absolute;inset:0;z-index:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:80px 80px;mask-image:linear-gradient(90deg,#000,transparent 86%);opacity:.45}
+    .eyebrow{display:flex;align-items:center;gap:13px;margin:0 0 18px;color:var(--gold-hi);font-family:"IBM Plex Mono",monospace;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+    .eyebrow::before{content:"";width:32px;height:1px;background:var(--gold)}
+    h1,h2,h3,p{margin:0}h1,h2{font-weight:700;letter-spacing:-1.4px;line-height:.98;color:var(--ink)}
+    h1{font-size:66px;max-width:880px}h2{font-size:58px;max-width:1000px}h3{font-size:25px;letter-spacing:-.4px;line-height:1.12}
+    .lead{font-size:25px;line-height:1.42;color:var(--muted);max-width:860px}.small{font-size:17px;line-height:1.45;color:var(--muted)}
+    .mono{font-family:"IBM Plex Mono",monospace}.accent{color:var(--gold-hi)}.spacer{flex:1}
+    .folio{position:absolute;right:70px;top:61px;color:var(--gold);font-family:"IBM Plex Mono",monospace;font-size:14px;letter-spacing:.08em}
+    .rule{height:1px;background:var(--line);width:100%}
+    .slide-footer{position:absolute;left:70px;right:70px;bottom:28px;display:flex;justify-content:space-between;color:#77849a;font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.04em}
+
+    /* Photo compositions: one-third text, two-thirds image bleeding to the edge. */
+    .photo-slide .slide-inner{width:33.333%;padding-right:28px;justify-content:center}
+    .photo-slide .bleed-photo{position:absolute;z-index:0;right:0;top:0;width:66.666%;height:100%;object-fit:cover;object-position:center;opacity:.9}
+    .photo-slide .photo-shade{position:absolute;z-index:1;inset:0;background:linear-gradient(90deg,var(--navy) 0%,var(--navy) 32%,rgba(10,20,40,.76) 48%,rgba(10,20,40,.06) 78%)}
+    .photo-slide h1,.photo-slide h2{font-size:64px}.photo-slide .lead{font-size:22px;margin-top:26px;color:#c8d0dc}
+    .photo-slide .photo-caption{position:absolute;z-index:3;right:34px;bottom:28px;color:rgba(255,255,255,.72);font:11px "IBM Plex Mono",monospace;background:rgba(7,13,25,.72);padding:7px 9px;border-radius:2px}
+    .cover .slide-inner{width:50%;justify-content:flex-end;padding-bottom:78px}.cover h1{font-size:64px}.cover .eyebrow{margin-bottom:24px}.cover .byline{margin-top:38px;padding-top:18px;border-top:1px solid rgba(255,255,255,.16);color:#d6dce5;font-size:16px}
+
+    /* Slide 2 */
+    .route{margin-top:36px;display:grid;grid-template-columns:1fr 1fr;gap:0 44px}
+    .route-item{border-top:1px solid var(--line);min-height:66px;display:grid;grid-template-columns:1fr 44px;align-items:center}
+    .route-concept{appearance:none;border:0!important;background:transparent;color:inherit;min-height:65px;padding:13px 0;display:grid;grid-template-columns:52px 1fr;gap:12px;text-align:left;align-items:center;cursor:pointer;font-size:19px;box-shadow:none}.route-composite{min-height:65px;padding:13px 0;display:grid;grid-template-columns:52px 1fr;gap:12px;align-items:center;font-size:19px}.route-composite .route-terms{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}.route-composite .concept-trigger{font:inherit}.route-composite .join{color:var(--muted)}
+    .route-go{appearance:none;width:42px;height:34px;border:1px solid var(--line-2);border-radius:2px;background:transparent;color:var(--gold-hi);cursor:pointer;font:600 11px "IBM Plex Mono",monospace;letter-spacing:.08em}
+    .route-item:hover{border-color:var(--gold)}.route-concept:hover,.route-concept:focus-visible,.route-go:hover,.route-go:focus-visible{color:var(--gold-hi);outline:1px solid rgba(208,171,134,.42);outline-offset:2px}
+    .route b{font:500 13px "IBM Plex Mono",monospace;color:var(--gold)}
+
+    /* Editorial layouts */
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;flex:1;min-height:0}
+    .bullets{list-style:none;padding:0;margin:30px 0 0;display:grid;gap:18px}
+    .bullets li{font-size:22px;line-height:1.35;color:#d4dae3;padding-left:27px;position:relative}
+    .bullets li::before{content:"";position:absolute;left:0;top:.64em;width:11px;height:1px;background:var(--gold)}
+    .archive-axis{position:relative;padding-left:48px;display:grid;gap:16px}.archive-axis::before{content:"";position:absolute;left:10px;top:10px;bottom:10px;width:1px;background:var(--line-2)}
+    .era{position:relative;padding:19px 22px;border-top:1px solid var(--line-2);background:rgba(255,255,255,.018)}
+    .era::before{content:"";position:absolute;left:-43px;top:22px;width:10px;height:10px;background:var(--navy);border:1px solid var(--gold)}
+    .era .label{font:500 12px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.08em}.era h3{margin-top:8px}.era p{margin-top:6px;font-size:16px;color:var(--muted)}
+    .era.key{border-top-color:var(--gold)}.era.key::before{background:var(--gold);box-shadow:0 0 18px rgba(208,171,134,.38)}
+
+    .principle-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px 58px;margin-top:36px}
+    .principle{padding-top:18px;border-top:1px solid var(--line-2)}.principle .num{font:600 17px "IBM Plex Mono",monospace;color:var(--gold);margin-bottom:10px}.principle h3{font-size:30px}.principle p{font-size:21px;line-height:1.4;color:var(--muted);margin-top:8px}
+
+    /* Easton: a deliberate, progressive conversion cycle. */
+    .easton-copy{position:relative;z-index:4;width:36%;padding-top:32px}.easton-copy .lead{font-size:21px;margin-top:24px;max-width:390px}
+    .easton-svg{position:absolute;width:900px;height:620px;right:18px;top:92px;overflow:visible}
+    .easton-svg .easton-part{transform-box:fill-box;transform-origin:center}
+    .easton-svg .e-box{fill:#f4f0e7;stroke:#e9d890;stroke-width:1.5}.easton-svg .e-label{fill:#0a1428;font:700 18px "IBM Plex Mono",monospace;letter-spacing:.05em}
+    .easton-svg .e-pill{fill:#13233d;stroke:#d0ab86;stroke-width:1.5}.easton-svg .e-small{fill:#e9d890;font:600 13px "IBM Plex Mono",monospace;letter-spacing:.06em}
+    .easton-svg .e-hub{fill:#d0ab86;stroke:#e9d890;stroke-width:2}.easton-svg .e-hub-label{fill:#0a1428;font:800 23px "DM Sans",sans-serif}
+    .easton-svg .e-line path{fill:none;stroke:#f4f0e7;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;marker-end:url(#eastonArrow)}.easton-svg .e-line.no-arrow path{marker-end:none}
+    .easton-svg .e-feedback path{fill:none;stroke:#d0ab86;stroke-width:4;stroke-linecap:round;stroke-dasharray:12 10;marker-end:url(#eastonArrowGold)}
+    .easton-svg .e-feedback-pill{fill:#0d1a32;stroke:#d0ab86;stroke-width:2}.easton-svg .e-feedback-label{fill:#e9d890;font:600 15px "IBM Plex Mono",monospace;letter-spacing:.05em}
+
+    .quote{font-size:34px;line-height:1.28;letter-spacing:-.7px;border-left:1px solid var(--gold);padding-left:28px}.quote cite{display:block;font:400 13px "IBM Plex Mono",monospace;color:var(--gold);margin-top:20px;font-style:normal}
+    .social-axis{width:min(100%,530px);height:430px;position:relative;margin-inline:auto;border:1px solid var(--line-2)}.social-axis::before,.social-axis::after{content:"";position:absolute;background:var(--line-2)}.social-axis::before{width:1px;top:30px;bottom:30px;left:50%}.social-axis::after{height:1px;left:30px;right:30px;top:50%}
+    .social-core{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:152px;height:152px;border-radius:50%;background:var(--ink);color:var(--navy);display:grid;place-items:center;text-align:center;font-weight:700;font-size:22px;box-shadow:0 0 0 15px var(--navy),0 0 0 16px var(--gold)}
+    .axis-word{position:absolute;color:var(--gold);font:500 13px "IBM Plex Mono",monospace;letter-spacing:.09em}.axis-word.top{top:23px;left:50%;transform:translateX(-50%)}.axis-word.bottom{bottom:23px;left:50%;transform:translateX(-50%)}.axis-word.left{left:20px;top:50%;transform:translateY(-50%)}.axis-word.right{right:20px;top:50%;transform:translateY(-50%)}
+
+    .type-list{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:0 44px}.type-row{display:grid;grid-template-columns:52px 1fr;gap:16px;padding:20px 0;border-top:1px solid var(--line-2)}.type-row b{font:500 14px "IBM Plex Mono",monospace;color:var(--gold)}.type-row h3{font-size:28px}.type-row p{font-size:20px;color:var(--muted);margin-top:7px;line-height:1.42}
+
+    /* Progressive relation */
+    .relation{display:grid;grid-template-columns:1fr 74px 1fr 74px 1fr;align-items:center;margin-top:82px}.relation-node{padding:26px 22px;border-top:1px solid var(--gold);background:rgba(255,255,255,.025)}.relation-node h3{font-size:28px}.relation-node p{font-size:17px;color:var(--muted);line-height:1.4;margin-top:10px}.relation-arrow{height:1px;background:var(--gold);position:relative}.relation-arrow::after{content:"";position:absolute;right:0;top:-4px;width:8px;height:8px;border-top:1px solid var(--gold);border-right:1px solid var(--gold);transform:rotate(45deg)}.relation-caption{text-align:center;margin-top:34px;font-size:18px;color:#cbd3de}
+    .fragment{opacity:0;visibility:hidden;transform:translate3d(0,34px,0) scale(.9);filter:blur(7px);transition:opacity .72s cubic-bezier(.16,1.22,.34,1),transform .72s cubic-bezier(.16,1.22,.34,1),filter .58s ease,visibility 0s linear .72s}.fragment.shown{visibility:visible;opacity:1;transform:none;filter:none;transition-delay:0s}
+    .step-hint{position:absolute;z-index:10;left:50%;bottom:28px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;min-width:430px;justify-content:center;padding:11px 20px;background:#070e1d;border:1px solid var(--line-2);border-radius:3px;color:var(--ink);font-size:17px;font-weight:600;box-shadow:0 12px 34px rgba(0,0,0,.28)}
+    .step-hint::before{content:"";width:28px;height:1px;background:var(--gold)}.step-hint.complete{color:#8894a7}.step-hint.complete::before{background:#657287}
+
+    .method-split{display:grid;grid-template-columns:1fr 1px 1fr;gap:44px;margin-top:48px;align-items:stretch}.method-divider{background:var(--line-2)}.method{padding-top:20px;border-top:1px solid var(--gold)}.method .measure{font:500 12px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.1em}.method h3{font-size:34px;margin-top:13px}.method>p{font-size:19px;line-height:1.42;color:var(--muted);margin-top:12px}.techniques{display:flex;flex-wrap:wrap;gap:8px;margin-top:24px}.techniques span{border:1px solid var(--line-2);border-radius:3px;padding:8px 11px;color:#d5dbe4;font:400 13px "IBM Plex Mono",monospace}
+
+    .values-layout{display:grid;grid-template-columns:minmax(0,1fr) 500px;gap:58px;align-items:center;flex:1}.values-orbit{width:430px;height:430px;position:relative;margin-inline:auto;border-radius:50%;border:1px solid rgba(208,171,134,.35);pointer-events:none}.values-orbit::before,.values-orbit::after{content:"";position:absolute;border-radius:50%;border:1px solid var(--line);pointer-events:none}.values-orbit::before{inset:52px}.values-orbit::after{inset:104px}.value-core{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:150px;height:150px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center;text-align:center;font-weight:700;font-size:20px}.orbit-label{position:absolute;z-index:1;background:var(--ink);color:var(--navy);border:1px solid var(--gold);border-radius:2px;padding:9px 13px;font:500 13px "IBM Plex Mono",monospace}.o1{top:14px;left:50%;transform:translateX(-50%)}.o2{right:-15px;top:50%;transform:translateY(-50%)}.o3{bottom:14px;left:50%;transform:translateX(-50%)}.o4{left:-18px;top:50%;transform:translateY(-50%)}
+
+    /* Brexit vertical progressive timeline */
+    .brexit-layout{display:grid;grid-template-columns:280px 1fr;gap:50px;flex:1;margin-top:24px;min-height:0}.vote-panel{position:relative;padding-top:14px}.vote-number{font-size:108px;line-height:.9;font-weight:800;letter-spacing:-7px;color:var(--ink);font-variant-numeric:tabular-nums}.vote-label{margin-top:16px;color:var(--muted);font:500 13px "IBM Plex Mono",monospace;text-transform:uppercase;letter-spacing:.09em}.tick-ruler{position:absolute;right:2px;top:10px;width:38px;height:154px;display:flex;flex-direction:column-reverse;justify-content:space-between}.tick{display:block;height:1px;background:#46536a;width:14px;transform-origin:left}.tick.on{background:var(--gold);width:30px}
+    .timeline-v{position:relative;height:500px}.timeline-v::before{content:"";position:absolute;left:49.5%;top:0;bottom:0;width:1px;background:var(--line-2)}.tl-row{position:relative;height:125px;display:grid;grid-template-columns:1fr 46px 1.16fr;align-items:start}.tl-date{text-align:right;padding:16px 28px 0 0;font-size:25px;font-weight:700;letter-spacing:-.7px}.tl-center{position:relative;height:100%}.tl-segment{position:absolute;left:22px;top:0;bottom:0;width:1px;background:var(--gold);transform:scaleY(0);transform-origin:top}.tl-node{position:absolute;left:16px;top:18px;width:13px;height:13px;background:var(--navy);border:1px solid #778399;border-radius:50%;transform:scale(0)}.tl-card{margin:5px 0 16px 25px;padding:11px 16px;border-top:1px solid var(--line-2);background:rgba(255,255,255,.025);transform:translateX(70px);opacity:0}.tl-card strong{display:block;font:500 12px "IBM Plex Mono",monospace;color:var(--gold);margin-bottom:5px}.tl-card p{font-size:16px;line-height:1.36;color:#ccd4df}
+    .tl-row.shown .tl-segment{animation:segmentDraw .36s ease-out forwards}.tl-row.shown .tl-node{animation:nodePop .55s .28s var(--spring) forwards}.tl-row.shown .tl-card{animation:cardSlide .62s .52s var(--spring) forwards}.tl-row.shown .tl-node{background:var(--gold);border-color:var(--gold);box-shadow:0 0 18px rgba(208,171,134,.44)}.tl-row.past .tl-node{background:var(--navy);box-shadow:none;border-color:var(--gold)}
+    .tl-card p b{color:var(--ink);font-weight:700}
+    @keyframes segmentDraw{to{transform:scaleY(1)}}@keyframes nodePop{0%{transform:scale(0)}68%{transform:scale(1.08)}100%{transform:scale(1)}}@keyframes cardSlide{0%{opacity:0;transform:translateX(70px)}68%{opacity:1;transform:translateX(-4px)}100%{opacity:1;transform:none}}
+
+    /* SENIAT dossier */
+    .seniat .slide-inner{width:33.333%;padding-right:30px;justify-content:center}.seniat .bleed-photo{width:66.667%;opacity:.64}.seniat .photo-shade{background:linear-gradient(90deg,var(--navy) 0%,var(--navy) 37%,rgba(10,20,40,.86) 52%,rgba(10,20,40,.15) 100%)}.seniat h2{font-size:52px}
+    .dossier{margin-top:28px;display:grid;gap:12px}.dossier-row{display:grid;grid-template-columns:88px 1fr;gap:14px;padding-top:11px;border-top:1px solid rgba(255,255,255,.15)}.dossier-row b{font:500 11px "IBM Plex Mono",monospace;color:var(--gold);letter-spacing:.06em}.dossier-row p{font-size:15px;line-height:1.37;color:#d7dde5}.dossier-note{font:400 12px "IBM Plex Mono",monospace;color:#aeb8c7;margin-top:12px;line-height:1.42}
+
+    .synthesis{display:grid;grid-template-columns:repeat(3,1fr);gap:38px;margin-top:62px}.synth{border-top:1px solid var(--gold);padding-top:18px}.synth b{font:500 13px "IBM Plex Mono",monospace;color:var(--gold)}.synth h3{font-size:30px;margin-top:14px}.synth p{font-size:18px;color:var(--muted);line-height:1.42;margin-top:11px}.closing-line{margin-top:48px;font-size:29px;line-height:1.3;letter-spacing:-.6px;max-width:850px}
+    .sources{columns:2;column-gap:64px;margin-top:28px}.source{break-inside:avoid;padding:12px 0;border-top:1px solid var(--line)}.source strong{display:block;font-size:16px;color:var(--ink)}.source p{font-size:14px;line-height:1.4;color:var(--muted);margin-top:5px}
+
+    /* Concepts are editorial text, not controls. */
+    .concept-label{font:inherit;color:inherit;line-height:inherit}
+    .route-concept{cursor:default}
+    .value-core{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);width:156px;height:156px;border-radius:50%;background:var(--gold);color:var(--navy);display:grid;place-items:center;text-align:center;font-weight:800;font-size:20px;box-shadow:0 0 0 1px var(--gold-hi),0 0 30px rgba(208,171,134,.24)}.value-core.fragment{transform:translate(-50%,-50%) scale(.72)}.value-core.fragment.shown{transform:translate(-50%,-50%) scale(1)}
+    .orbit-label{position:absolute;z-index:1;background:var(--ink);color:var(--navy);border:1px solid var(--gold);border-radius:2px;padding:10px 14px;font:600 14px "IBM Plex Mono",monospace;box-shadow:0 8px 18px rgba(0,0,0,.18)}
+    .orbit-label.o1.fragment{transform:translateX(-50%) translateY(24px) scale(.9)}.orbit-label.o1.fragment.shown{transform:translateX(-50%)}
+    .orbit-label.o2.fragment{transform:translateY(-50%) translateX(-24px) scale(.9)}.orbit-label.o2.fragment.shown{transform:translateY(-50%)}
+    .orbit-label.o3.fragment{transform:translateX(-50%) translateY(-24px) scale(.9)}.orbit-label.o3.fragment.shown{transform:translateX(-50%)}
+    .orbit-label.o4.fragment{transform:translateY(-50%) translateX(24px) scale(.9)}.orbit-label.o4.fragment.shown{transform:translateY(-50%)}
+
+    /* Named choreography system: transform + opacity only. */
+    .anim{opacity:0;will-change:transform,opacity}.scene-ready .anim{animation-duration:.82s;animation-timing-function:var(--spring);animation-fill-mode:forwards;animation-delay:var(--delay,0ms)}
+    .scene-ready .detail{animation-duration:.62s;animation-timing-function:var(--spring)}
+    .scene-ready h1.anim,.scene-ready h2.anim{animation-name:titleClipReveal!important;clip-path:inset(0 0 0 0)}
+    @keyframes titleClipReveal{0%{opacity:0;transform:translate3d(-110px,0,0);clip-path:inset(0 100% 0 0)}68%{opacity:1;transform:translate3d(5px,0,0);clip-path:inset(0 0 0 0)}100%{opacity:1;transform:none;clip-path:inset(0 0 0 0)}}
+    .photo-slide .visual.anim{--delay:200ms}
+    .motion-breach .anim{transform:translate3d(-120px,0,0) skewX(-5deg)}.motion-breach .visual{transform:translate3d(100px,0,0) scale(.92)}.motion-breach.scene-ready .anim{animation-name:enterBreach}
+    @keyframes enterBreach{0%{opacity:0;transform:translate3d(-120px,0,0) skewX(-5deg)}68%{opacity:1;transform:translate3d(5px,0,0) skewX(.3deg)}100%{opacity:1;transform:none}}
+    .motion-routeSplit .anim:nth-child(odd){transform:translate3d(-80px,0,0) rotate(-.7deg)}.motion-routeSplit .anim:nth-child(even){transform:translate3d(80px,0,0) rotate(.7deg)}.motion-routeSplit.scene-ready .anim{animation-name:enterRoute}
+    @keyframes enterRoute{0%{opacity:0;transform:translate3d(var(--sx,-70px),0,0) rotate(-.7deg)}68%{opacity:1;transform:translate3d(3px,0,0)}100%{opacity:1;transform:none}}
+    .motion-archiveLift .anim{transform:perspective(900px) translate3d(0,70px,-120px) rotateX(7deg)}.motion-archiveLift.scene-ready .anim{animation-name:enterArchive}
+    @keyframes enterArchive{0%{opacity:0;transform:perspective(900px) translate3d(0,70px,-120px) rotateX(7deg)}70%{opacity:1;transform:perspective(900px) translate3d(0,-4px,5px) rotateX(-.4deg)}100%{opacity:1;transform:none}}
+    .motion-matrix .anim:nth-child(odd){transform:translate3d(-46px,34px,0) scale(.94)}.motion-matrix .anim:nth-child(even){transform:translate3d(46px,-30px,0) scale(.94)}.motion-matrix.scene-ready .anim{animation-name:enterMatrix}
+    @keyframes enterMatrix{0%{opacity:0;transform:translate3d(-46px,34px,0) scale(.94)}68%{opacity:1;transform:translate3d(3px,-2px,0) scale(1.04)}100%{opacity:1;transform:none}}
+    .motion-radialSystem .anim{transform:translate3d(0,-55px,0) scale(.96)}.motion-radialSystem.scene-ready .anim{animation-name:enterRadial}
+    @keyframes enterRadial{0%{opacity:0;transform:translate3d(0,-55px,0) scale(.96)}68%{opacity:1;transform:translate3d(0,3px,0) scale(1.025)}100%{opacity:1;transform:none}}
+    .motion-tension .anim{transform:translate3d(-74px,0,0) rotateY(-9deg)}.motion-tension .visual{transform:none}.motion-tension.scene-ready .anim{animation-name:enterTension}.motion-tension .social-axis .anim:nth-child(1){--delay:300ms}.motion-tension .social-axis .anim:nth-child(2){--delay:470ms}.motion-tension .social-axis .anim:nth-child(3){--delay:640ms}.motion-tension .social-axis .anim:nth-child(4){--delay:810ms}.motion-tension .social-axis .anim:nth-child(5){--delay:980ms}
+    .motion-tension .social-axis .axis-word.top,.motion-tension .social-axis .axis-word.bottom{transform:translateX(-50%)}.motion-tension .social-axis .axis-word.left,.motion-tension .social-axis .axis-word.right{transform:translateY(-50%)}.motion-tension .social-axis .social-core{transform:translate(-50%,-50%)}.motion-tension.scene-ready .social-axis .axis-word,.motion-tension.scene-ready .social-axis .social-core{animation-name:axisFade!important;animation-timing-function:ease-out}
+    @keyframes enterTension{0%{opacity:0;transform:translate3d(-74px,0,0) rotateY(-9deg)}70%{opacity:1;transform:translate3d(4px,0,0) rotateY(.4deg) scale(1.025)}100%{opacity:1;transform:none}}@keyframes axisFade{0%{opacity:0}100%{opacity:1}}
+    .motion-quartet .anim{transform:translate3d(var(--qx,0),var(--qy,54px),0) rotate(var(--qr,0deg))}.motion-quartet.scene-ready .anim{animation-name:enterQuartet}
+    @keyframes enterQuartet{0%{opacity:0;transform:translate3d(var(--qx,0),var(--qy,54px),0) rotate(var(--qr,0deg))}68%{opacity:1;transform:translate3d(0,-4px,0) scale(1.03)}100%{opacity:1;transform:none}}
+    .motion-relay .anim{transform:translate3d(-110px,0,0)}.motion-relay.scene-ready .anim{animation-name:enterRelay}
+    @keyframes enterRelay{0%{opacity:0;transform:translate3d(-110px,0,0)}64%{opacity:1;transform:translate3d(6px,0,0)}82%{transform:translate3d(-2px,0,0)}100%{opacity:1;transform:none}}
+    .motion-bifurcate .anim:nth-child(odd){transform:translate3d(-95px,0,0) rotateY(7deg)}.motion-bifurcate .anim:nth-child(even){transform:translate3d(95px,0,0) rotateY(-7deg)}.motion-bifurcate.scene-ready .anim{animation-name:enterBifurcate}
+    @keyframes enterBifurcate{0%{opacity:0;transform:translate3d(95px,0,0) rotateY(-7deg)}70%{opacity:1;transform:translate3d(-4px,0,0) rotateY(.4deg) scale(1.02)}100%{opacity:1;transform:none}}
+    .motion-orbit .anim{transform:translate3d(-65px,0,0)}.motion-orbit .visual{transform:rotate(-34deg) scale(.58)}.motion-orbit.scene-ready .anim{animation-name:enterOrbit}
+    @keyframes enterOrbit{0%{opacity:0;transform:rotate(-34deg) scale(.58)}70%{opacity:1;transform:rotate(2deg) scale(1.04)}100%{opacity:1;transform:none}}
+    .motion-photoStrike .anim{transform:translate3d(-145px,0,0) skewX(-6deg)}.motion-photoStrike .visual{transform:translate3d(150px,0,0) scale(.87)}.motion-photoStrike.scene-ready .anim{animation-name:enterPhoto}
+    @keyframes enterPhoto{0%{opacity:0;transform:translate3d(-145px,0,0) skewX(-6deg)}62%{opacity:1;transform:translate3d(8px,0,0) skewX(.5deg) scale(1.025)}100%{opacity:1;transform:none}}
+    .motion-timelineThread .anim{transform:translate3d(0,-58px,0) scaleY(.92)}.motion-timelineThread.scene-ready .anim{animation-name:enterThread}
+    @keyframes enterThread{0%{opacity:0;transform:translate3d(0,-58px,0) scaleY(.92)}70%{opacity:1;transform:translate3d(0,4px,0) scaleY(1.025)}100%{opacity:1;transform:none}}
+    .motion-dossierLoop .anim{transform:translate3d(-130px,18px,0) rotate(-1.2deg)}.motion-dossierLoop .visual{transform:translate3d(150px,0,0) scale(.9)}.motion-dossierLoop.scene-ready .anim{animation-name:enterDossier}
+    @keyframes enterDossier{0%{opacity:0;transform:translate3d(-130px,18px,0) rotate(-1.2deg)}68%{opacity:1;transform:translate3d(6px,-2px,0) rotate(.15deg) scale(1.02)}100%{opacity:1;transform:none}}
+    .motion-convergence .anim{transform:translate3d(var(--cx,0),74px,0) scale(.92)}.motion-convergence.scene-ready .anim{animation-name:enterConvergence}
+    @keyframes enterConvergence{0%{opacity:0;transform:translate3d(var(--cx,0),74px,0) scale(.92)}68%{opacity:1;transform:translate3d(0,-4px,0) scale(1.035)}100%{opacity:1;transform:none}}
+    .motion-curtain .anim:nth-child(odd){transform:translate3d(-90px,0,0)}.motion-curtain .anim:nth-child(even){transform:translate3d(90px,0,0)}.motion-curtain.scene-ready .anim{animation-name:enterCurtain}
+    @keyframes enterCurtain{0%{opacity:0;transform:translate3d(90px,0,0)}70%{opacity:1;transform:translate3d(-4px,0,0)}100%{opacity:1;transform:none}}
+
+    #controls{position:fixed;z-index:50;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);height:58px;display:flex;align-items:center;gap:6px;background:rgba(5,11,22,.94);border:1px solid var(--line-2);border-radius:4px;padding:6px;color:var(--ink);box-shadow:0 12px 32px rgba(0,0,0,.35)}
+    .ctrl{width:44px;height:44px;border:0;border-radius:2px;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer}.ctrl:hover,.ctrl:focus-visible{background:rgba(208,171,134,.12);color:var(--gold-hi);outline:1px solid rgba(208,171,134,.42)}.ctrl.primary{width:56px;background:var(--gold);color:var(--navy)}.ctrl.primary.has-step{animation:nextPulse 1.25s ease-in-out 3}.ctrl svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}
+    @keyframes nextPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(208,171,134,0)}50%{transform:scale(1.07);box-shadow:0 0 0 9px rgba(208,171,134,.18)}}
+    .counter{min-width:126px;text-align:center;color:#bec7d4;font:400 13px "IBM Plex Mono",monospace}.step-no{color:var(--gold);margin-left:4px}
+    #progress{position:fixed;z-index:51;left:0;right:0;bottom:0;height:3px;background:rgba(255,255,255,.08)}#progressBar{height:100%;width:0;background:var(--gold);transition:width .45s ease}
+    #hint{position:fixed;z-index:40;right:22px;top:18px;padding:8px 10px;background:rgba(5,11,22,.72);border:1px solid var(--line);border-radius:3px;color:#b7c1d0;font:400 12px "IBM Plex Mono",monospace;transition:opacity .35s}#hint.hide{opacity:0}
+    #menu{position:fixed;z-index:70;inset:0;display:none;place-items:center;padding:34px;background:rgba(3,7,15,.86)}#menu.open{display:grid}.menu-panel{width:min(1040px,95vw);max-height:85vh;overflow:auto;background:var(--navy-2);border:1px solid var(--line-2);padding:36px}.menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.menu-head h2{font-size:38px}.close-btn{width:42px;height:42px;border:1px solid var(--line-2);background:transparent;color:var(--ink);font-size:22px;cursor:pointer}.menu-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.menu-item{min-height:70px;padding:13px;border:1px solid var(--line);border-radius:2px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;font-size:15px}.menu-item b{display:block;color:var(--gold);font:500 11px "IBM Plex Mono",monospace;margin-bottom:5px}.menu-item:hover,.menu-item:focus-visible{border-color:var(--gold);outline:none;background:rgba(208,171,134,.06)}
+    @media(max-width:800px){#controls{height:52px;bottom:8px}.ctrl{width:39px;height:38px}.ctrl.primary{width:47px}.counter{min-width:103px;font-size:11px}.menu-panel{padding:22px}.menu-grid{grid-template-columns:1fr 1fr}.menu-head h2{font-size:29px}#hint{display:none}.step-hint{min-width:0;width:calc(100% - 42px);font-size:15px;bottom:24px}#flightFX{background:radial-gradient(circle at center,transparent 18%,rgba(2,6,14,.1) 62%,rgba(2,6,14,.58) 100%)}}
+    /* This is a motion-led teaching deck: the requested camera flight remains active even when the OS reduces ambient UI motion. */
+    @media(prefers-reduced-motion:reduce){.ctrl.primary.has-step{animation:none!important;outline:2px solid var(--gold-hi)}}
+  </style>
+</head>
+<body>
+<div id="viewport" aria-live="polite"><div id="ambientGrid" aria-hidden="true"></div><div id="world">
+  <section class="slide photo-slide cover motion-breach" data-motion="breach" data-title="Portada" data-x="0" data-y="0" data-scale="1">
+    <img class="bleed-photo visual anim" src="assets/foto-portada-parlamento.jpg" alt="Interior monumental de un parlamento europeo">
+    <div class="photo-shade"></div>
+    <div class="slide-inner">
+      <div class="eyebrow anim" data-phase="title">Sociología Política</div>
+      <h1 class="anim" data-phase="title">El sistema político y la acción social</h1>
+      <p class="lead anim detail" data-phase="detail">Del análisis funcional a la retroalimentación del poder.</p>
+      <div class="byline anim detail" data-phase="detail">Prof. Inmer Camacaro · Universidad Fermín Toro</div>
+    </div>
+    <div class="photo-caption">01 · SISTEMA / ACCIÓN / RESPUESTA</div>
+  </section>
+
+  <section class="slide motion-routeSplit" data-motion="routeSplit" data-title="Índice" data-x="1510" data-y="-210" data-scale=".9">
+    <div class="slide-grid"></div><div class="slide-inner"><div class="eyebrow anim">Ruta de la exposición</div><span class="folio anim">02 / 14</span><h2 class="anim">Siete paradas para leer el poder</h2>
+      <div class="route">
+        <div class="route-item anim"><div class="route-concept"><b>01</b>Análisis funcional</div><button class="route-go" data-go="2" aria-label="Ir a Análisis funcional">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>02</b>Acción y orden social</div><button class="route-go" data-go="5" aria-label="Ir a Acción y orden social">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>03</b>Métodos y valores</div><button class="route-go" data-go="8" aria-label="Ir a Métodos y valores">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>04</b>Modelo de Easton</div><button class="route-go" data-go="4" aria-label="Ir al modelo de Easton">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>05</b>Brexit · secuencia</div><button class="route-go" data-go="10" aria-label="Ir a Brexit, secuencia">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>06</b>Síntesis</div><button class="route-go" data-go="12" aria-label="Ir a Síntesis">IR</button></div>
+        <div class="route-item anim"><div class="route-concept"><b>07</b>Fuentes</div><button class="route-go" data-go="13" aria-label="Ir a Fuentes">IR</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide motion-archiveLift" data-motion="archiveLift" data-title="Origen del análisis funcional" data-x="3060" data-y="-690" data-scale="1.05">
+    <div class="slide-inner"><div class="eyebrow anim">Sistema político · Origen</div><span class="folio anim">03 / 14</span>
+      <div class="two-col"><div><h2 class="anim">De las instituciones a las relaciones</h2><ul class="bullets"><li class="anim">El enfoque clásico observaba instituciones formales.</li><li class="anim">El conductismo incorporó actores y conductas.</li><li class="anim">Easton estudió entradas, conversión y respuestas.</li></ul></div>
+      <div class="archive-axis"><div class="era anim"><span class="label">ENFOQUE CLÁSICO</span><h3><span class="concept-label">Instituciones</span></h3><p>Estructuras, normas y órganos formales.</p></div><div class="era anim"><span class="label">GIRO CONDUCTISTA</span><h3><span class="concept-label">Actores</span></h3><p>Interacciones y comportamientos observables.</p></div><div class="era key anim"><span class="label">EASTON · 1965</span><h3><span class="concept-label">Sistema</span></h3><p>Demandas → conversión → decisiones.</p></div></div></div>
+      <div class="slide-footer anim detail"><span>A Systems Analysis of Political Life</span><span>ORIGEN</span></div>
+    </div>
+  </section>
+
+  <section class="slide motion-matrix" data-motion="matrix" data-title="Principios del sistema político" data-x="4620" data-y="180" data-scale=".92">
+    <div class="slide-grid"></div><div class="slide-inner"><div class="eyebrow anim">Sistema político · Principios</div><span class="folio anim">04 / 14</span><h2 class="anim">Cuatro coordenadas del análisis</h2>
+      <div class="principle-grid"><div class="principle anim"><div class="num"><span class="concept-label">01 · AUTORIDAD</span></div><h3><span class="concept-label">Asignación autoritativa de valores</span></h3><p>Decisiones obligatorias que distribuyen recursos y prioridades.</p></div><div class="principle anim"><div class="num"><span class="concept-label">02 · LÍMITES</span></div><h3><span class="concept-label">Frontera analítica</span></h3><p>Distingue al sistema sin aislarlo de su ambiente.</p></div><div class="principle anim"><div class="num"><span class="concept-label">03 · AMBIENTE</span></div><h3><span class="concept-label">Presiones del entorno</span></h3><p>Economía, cultura y sociedad generan insumos.</p></div><div class="principle anim"><div class="num"><span class="concept-label">04 · PERSISTENCIA</span></div><h3><span class="concept-label">Capacidad adaptativa</span></h3><p>El sistema responde y aprende de sus efectos.</p></div></div>
+    </div>
+  </section>
+
+  <section class="slide motion-radialSystem" data-motion="radialSystem" data-title="Modelo de Easton" data-fragment-start="0" data-x="6220" data-y="-260" data-scale="1.1">
+    <div class="slide-grid"></div>
+    <div class="slide-inner"><div class="easton-copy"><div class="eyebrow anim">Funciones · Modelo de Easton</div><span class="folio anim">05 / 14</span><h2 class="anim">El sistema se construye paso a paso</h2><p class="lead anim detail">Siga el recorrido completo: presión social, conversión, respuesta y retorno.</p></div>
+      <svg class="easton-svg" viewBox="0 0 885 620" role="img" aria-labelledby="eastTitle eastDesc">
+        <title id="eastTitle">Ciclo progresivo del sistema político de Easton</title><desc id="eastDesc">El diagrama revela demandas, entrada, sistema político, salida, decisiones, retroalimentación y apoyos en ese orden.</desc>
+        <defs><marker id="eastonArrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#f4f0e7"/></marker><marker id="eastonArrowGold" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 Z" fill="#d0ab86"/></marker></defs>
+        <g class="easton-part fragment" data-fragment="1"><rect class="e-box" x="30" y="88" width="190" height="76" rx="4"/><text class="e-label" x="125" y="134" text-anchor="middle">DEMANDAS</text></g>
+        <g class="easton-part fragment e-line" data-fragment="2"><path d="M220 126 H330"/></g>
+        <g class="easton-part fragment" data-fragment="3"><rect class="e-pill" x="242" y="66" width="84" height="34" rx="17"/><text class="e-small" x="284" y="88" text-anchor="middle">ENTRADA</text></g>
+        <g class="easton-part fragment" data-fragment="4"><rect class="e-hub" x="350" y="65" width="220" height="125" rx="62"/><text class="e-hub-label" x="460" y="121" text-anchor="middle">SISTEMA</text><text class="e-hub-label" x="460" y="149" text-anchor="middle">POLÍTICO</text></g>
+        <g class="easton-part fragment e-line" data-fragment="5"><path d="M570 126 H682"/></g>
+        <g class="easton-part fragment" data-fragment="6"><rect class="e-pill" x="594" y="66" width="86" height="34" rx="17"/><text class="e-small" x="637" y="88" text-anchor="middle">SALIDA</text></g>
+        <g class="easton-part fragment" data-fragment="7"><rect class="e-box" x="690" y="88" width="174" height="76" rx="4"/><text class="e-label" x="777" y="134" text-anchor="middle">DECISIONES</text></g>
+        <g class="easton-part fragment e-feedback" data-fragment="8"><path d="M777 164 C777 312 719 388 617 420 M335 420 C240 420 155 389 125 314"/><rect class="e-feedback-pill" x="335" y="398" width="282" height="44" rx="22"/><text class="e-feedback-label" x="476" y="426" text-anchor="middle">RETROALIMENTACIÓN</text></g>
+        <g class="easton-part fragment" data-fragment="9"><rect class="e-box" x="30" y="250" width="190" height="76" rx="4"/><text class="e-label" x="125" y="296" text-anchor="middle">APOYOS</text></g>
+        <g class="easton-part fragment e-line no-arrow" data-fragment="10"><path d="M220 288 H295 Q330 288 330 252 V172 Q330 145 350 145"/></g>
+      </svg>
+      <div class="step-hint">Pulse siguiente · 10 pasos por revelar</div>
+    </div>
+  </section>
+
+  <section class="slide motion-tension" data-motion="tension" data-title="Fundamentos de la acción social" data-x="7730" data-y="1200" data-scale=".96">
+    <div class="slide-inner"><div class="eyebrow anim">Acción social · Fundamento</div><span class="folio anim">06 / 14</span><div class="two-col"><div><h2 class="anim">Actuar es interpretar a otros</h2><blockquote class="quote anim detail">La acción es social cuando su sentido se orienta por la conducta de otros.<cite>MAX WEBER · ECONOMÍA Y SOCIEDAD</cite></blockquote></div><div class="social-axis visual" aria-label="Elementos de la acción social"><span class="axis-word top anim">SENTIDO</span><span class="axis-word right anim">OTROS</span><span class="axis-word bottom anim">CONTEXTO</span><span class="axis-word left anim">EXPECTATIVA</span><span class="social-core anim">ACCIÓN<br>SOCIAL</span></div></div></div>
+  </section>
+
+  <section class="slide motion-quartet" data-motion="quartet" data-title="Tipos de acción social" data-x="9200" data-y="1660" data-scale=".86">
+    <div class="slide-grid"></div><div class="slide-inner"><div class="eyebrow anim">Acción social · Tipología</div><span class="folio anim">07 / 14</span><h2 class="anim">Cuatro orientaciones ideales</h2><div class="type-list">
+      <div class="type-row anim" style="--qx:-60px;--qy:-28px;--qr:-1deg"><b>I</b><div><h3><span class="concept-label">Racional con arreglo a fines</span></h3><p>Calcula medios, consecuencias y resultados.</p></div></div><div class="type-row anim" style="--qx:60px;--qy:-28px;--qr:1deg"><b>II</b><div><h3><span class="concept-label">Racional con arreglo a valores</span></h3><p>Actúa por convicción, incluso con alto costo.</p></div></div><div class="type-row anim" style="--qx:-60px;--qy:35px;--qr:1deg"><b>III</b><div><h3><span class="concept-label">Afectiva</span></h3><p>Surge de emociones o estados sentimentales.</p></div></div><div class="type-row anim" style="--qx:60px;--qy:35px;--qr:-1deg"><b>IV</b><div><h3><span class="concept-label">Tradicional</span></h3><p>Se apoya en hábitos y costumbres arraigadas.</p></div></div>
+    </div><div class="slide-footer anim detail"><span>Los tipos ideales pueden combinarse en una conducta concreta.</span><span>WEBER</span></div></div>
+  </section>
+
+  <section class="slide motion-relay" data-motion="relay" data-title="Normas, rol y control social" data-fragment-start="0" data-x="10680" data-y="620" data-scale="1.02">
+    <div class="slide-inner"><div class="eyebrow anim">Orden social · Secuencia</div><span class="folio anim">08 / 14</span><h2 class="anim">¿Cómo se estabilizan las expectativas?</h2>
+      <div class="relation" aria-label="Relación progresiva entre normas, rol y control social"><div class="relation-node fragment" data-fragment="1"><h3>Normas</h3><p>Reglas sobre lo permitido y lo obligatorio.</p></div><div class="relation-arrow fragment" data-fragment="2" aria-hidden="true"></div><div class="relation-node fragment" data-fragment="3"><h3>Rol</h3><p>Conductas esperadas de una posición social.</p></div><div class="relation-arrow fragment" data-fragment="4" aria-hidden="true"></div><div class="relation-node fragment" data-fragment="5"><h3>Control social</h3><p>Mecanismos que refuerzan la conformidad.</p></div></div><p class="relation-caption fragment" data-fragment="6">Las normas definen · los roles sitúan · el control refuerza</p><div class="step-hint">Pulse siguiente · 6 pasos por revelar</div>
+    </div>
+  </section>
+
+  <section class="slide motion-bifurcate" data-motion="bifurcate" data-title="Metodología del estudio social" data-x="12190" data-y="1710" data-scale=".92">
+    <div class="slide-inner"><div class="eyebrow anim">Metodología · Dos estrategias</div><span class="folio anim">09 / 14</span><h2 class="anim">Medir patrones. Comprender significados.</h2><div class="method-split"><article class="method"><span class="measure anim">CUANTITATIVO</span><h3 class="anim">Variables y relaciones</h3><p class="anim">Trabaja con frecuencias, magnitudes y regularidades.</p><div class="techniques"><span class="anim">Encuesta</span><span class="anim">Estadística</span><span class="anim">Contenido cuantificado</span></div></article><div class="method-divider anim"></div><article class="method"><span class="measure anim">CUALITATIVO</span><h3 class="anim">Sentidos y contextos</h3><p class="anim">Interpreta prácticas, discursos y experiencias.</p><div class="techniques"><span class="anim">Entrevista</span><span class="anim">Observación</span><span class="anim">Documentos</span></div></article></div><div class="slide-footer anim detail"><span>La pregunta de investigación determina la estrategia.</span><span>MÉTODO</span></div></div>
+  </section>
+
+  <section class="slide motion-orbit" data-motion="orbit" data-title="Valores del sistema social" data-fragment-start="0" data-x="13630" data-y="690" data-scale="1.05">
+    <div class="slide-inner"><div class="eyebrow anim">Parsons · Sistema social</div><span class="folio anim">10 / 14</span><div class="values-layout"><div><h2 class="anim">Los valores compartidos como base del orden</h2><ul class="bullets"><li class="fragment" data-fragment="6">Conectan cultura, normas y roles.</li><li class="fragment" data-fragment="7">Dan integración y previsibilidad.</li><li class="fragment" data-fragment="8">El consenso encauza el conflicto.</li></ul></div><div class="values-orbit visual anim"><span class="value-core fragment" data-fragment="1">VALORES<br>COMPARTIDOS</span><span class="orbit-label o1 fragment" data-fragment="2">Normas</span><span class="orbit-label o2 fragment" data-fragment="3">Roles</span><span class="orbit-label o3 fragment" data-fragment="4">Instituciones</span><span class="orbit-label o4 fragment" data-fragment="5">Expectativas</span></div></div><div class="step-hint">Pulse siguiente · 8 pasos por revelar</div></div>
+  </section>
+
+  <section class="slide photo-slide motion-photoStrike" data-motion="photoStrike" data-title="Caso central: Brexit" data-x="15180" data-y="-330" data-scale=".94">
+    <img class="bleed-photo visual anim" src="assets/foto-brexit-westminster.jpg" alt="Palacio de Westminster al atardecer en Londres"><div class="photo-shade"></div><div class="slide-inner"><div class="eyebrow anim">Aplicación · Caso central</div><span class="folio anim">11 / 14</span><h2 class="anim">Brexit: el sistema bajo presión</h2><p class="lead anim detail">Demandas, decisión y retroalimentación en una secuencia institucional.</p><p class="mono anim detail" style="font-size:13px;color:var(--gold);margin-top:26px">REINO UNIDO · 2016–2020</p></div><div class="photo-caption">WESTMINSTER · LONDRES</div>
+  </section>
+
+  <section class="slide motion-timelineThread" data-motion="timelineThread" data-title="Cronología del Brexit" data-fragment-start="0" data-x="16720" data-y="-1120" data-scale="1.08">
+    <div class="slide-inner"><div class="eyebrow anim">Brexit · Cronología sistémica</div><span class="folio anim">12 / 14</span><h2 class="anim">Una decisión que viajó por el sistema</h2><div class="brexit-layout"><div class="vote-panel anim"><div class="vote-number"><span id="voteCount">0,0</span><small style="font-size:48px;letter-spacing:-2px">%</small></div><div class="vote-label">Leave · referéndum de 2016</div><div class="tick-ruler" id="tickRuler" aria-hidden="true"></div><p class="small" style="margin-top:48px">El número se activa al revelar el primer hito.</p></div><div class="timeline-v">
+      <div class="tl-row fragment" data-fragment="1"><div class="tl-date">23 JUN 2016</div><div class="tl-center"><i class="tl-segment"></i><i class="tl-node"></i></div><div class="tl-card"><strong><span class="concept-label">DEMANDA EXPRESADA</span></strong><p><b>Qué ocurrió:</b> 51,9 % votó por salir de la Unión Europea. La preferencia ciudadana entró al sistema como una demanda política vinculante.</p></div></div>
+      <div class="tl-row fragment" data-fragment="2"><div class="tl-date">29 MAR 2017</div><div class="tl-center"><i class="tl-segment"></i><i class="tl-node"></i></div><div class="tl-card"><strong><span class="concept-label">CONVERSIÓN</span></strong><p><b>Qué ocurrió:</b> el Gobierno activó el artículo 50. La demanda pasó a instituciones, negociación y procedimiento jurídico.</p></div></div>
+      <div class="tl-row fragment" data-fragment="3"><div class="tl-date">31 ENE 2020</div><div class="tl-center"><i class="tl-segment"></i><i class="tl-node"></i></div><div class="tl-card"><strong><span class="concept-label">SALIDA</span></strong><p><b>Qué ocurrió:</b> el Reino Unido dejó oficialmente la Unión Europea. La conversión institucional produjo una decisión ejecutada.</p></div></div>
+      <div class="tl-row fragment" data-fragment="4"><div class="tl-date">31 DIC 2020</div><div class="tl-center"><i class="tl-segment"></i><i class="tl-node"></i></div><div class="tl-card"><strong><span class="concept-label">TRANSICIÓN</span></strong><p><b>Qué ocurrió:</b> terminó la transición y comenzaron nuevas reglas. Sus efectos económicos y sociales regresaron como retroalimentación.</p></div></div>
+    </div></div><div class="step-hint">Pulse siguiente · 3 pasos por revelar</div></div>
+  </section>
+
+
+  <section class="slide motion-convergence" data-motion="convergence" data-title="Síntesis" data-x="19800" data-y="1120" data-scale="1.03">
+    <div class="slide-grid"></div><div class="slide-inner"><div class="eyebrow anim">Cierre · Ideas clave</div><span class="folio anim">13 / 14</span><h2 class="anim">Tres lentes sobre una realidad</h2><div class="synthesis"><div class="synth anim" style="--cx:-90px"><b>01</b><h3><span class="concept-label">Sistema</span></h3><p>Convierte demandas en decisiones obligatorias.</p></div><div class="synth anim" style="--cx:0"><b>02</b><h3><span class="concept-label">Acción</span></h3><p>La conducta se orienta por sentidos y valores.</p></div><div class="synth anim" style="--cx:90px"><b>03</b><h3><span class="concept-label">Retroalimentación</span></h3><p>Los efectos vuelven y reconfiguran el sistema.</p></div></div><p class="closing-line anim detail">Comprender la política es seguir el trayecto entre la sociedad que demanda y el sistema que responde.</p></div>
+  </section>
+
+  <section class="slide motion-curtain" data-motion="curtain" data-title="Fuentes" data-x="21320" data-y="300" data-scale=".84">
+    <div class="slide-inner"><div class="eyebrow anim">Fuentes · Selección básica</div><span class="folio anim">14 / 14</span><h2 class="anim">Referencias para continuar</h2><div class="sources"><div class="source anim"><strong>David Easton · 1965</strong><p><em>A Systems Analysis of Political Life.</em> John Wiley & Sons.</p></div><div class="source anim"><strong>Max Weber</strong><p><em>Economía y sociedad.</em> Concepto y tipología de la acción social.</p></div><div class="source anim"><strong>Talcott Parsons · 1951</strong><p><em>The Social System.</em> The Free Press.</p></div><div class="source anim"><strong>Electoral Commission · Reino Unido</strong><p>Resultados oficiales del referéndum de 23/06/2016.</p></div><div class="source anim"><strong>Unión Europea / Gobierno británico</strong><p>Artículo 50 y cronología institucional 2017–2020.</p></div><div class="source anim"><strong>Crédito fotográfico</strong><p>Fotografías: Wikimedia Commons.</p></div></div><div class="slide-footer anim detail"><span>Sociología Política · Universidad Fermín Toro</span><span>FUENTES</span></div></div>
+  </section>
+</div></div>
+<div id="flightFX" aria-hidden="true"></div>
+<div id="hint">← → · Deslice · I para índice</div>
+<nav id="controls" aria-label="Controles de presentación"><button class="ctrl" id="menuBtn" aria-label="Abrir índice" title="Índice"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button><button class="ctrl" id="prevBtn" aria-label="Anterior" title="Anterior"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></button><div class="counter"><span id="currentNo">1</span> / <span id="totalNo">14</span><span class="step-no" id="stepNo"></span></div><button class="ctrl primary" id="nextBtn" aria-label="Siguiente" title="Siguiente"><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button><button class="ctrl" id="fullBtn" aria-label="Pantalla completa" title="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M16 21h5v-5"/></svg></button></nav><div id="progress"><div id="progressBar"></div></div>
+<div id="menu" role="dialog" aria-modal="true" aria-labelledby="menuTitle"><div class="menu-panel"><div class="menu-head"><h2 id="menuTitle">Índice general</h2><button class="close-btn" id="closeMenu" aria-label="Cerrar">×</button></div><div class="menu-grid" id="menuGrid"></div></div></div>
+<script>
+(function(){
+  'use strict';
+  var slides=Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var world=document.getElementById('world'),viewport=document.getElementById('viewport');
+  var current=0,fragmentStep=0,totalFragments=0,touchStart=null,camera=null,flight=null,countFrame=null,sceneTimer=null,transitionCursor=0,lastTransition=-1;
+  var currentNo=document.getElementById('currentNo'),totalNo=document.getElementById('totalNo'),stepNo=document.getElementById('stepNo'),progress=document.getElementById('progressBar'),menu=document.getElementById('menu'),menuGrid=document.getElementById('menuGrid'),nextBtn=document.getElementById('nextBtn'),flightFX=document.getElementById('flightFX'),ambientGrid=document.getElementById('ambientGrid');
+  totalNo.textContent=slides.length;
+  for(var t=0;t<26;t++){var tick=document.createElement('i');tick.className='tick';document.getElementById('tickRuler').appendChild(tick)}
+  slides.forEach(function(slide,i){var z=Number(slide.dataset.scale||1);slide.style.left=slide.dataset.x+'px';slide.style.top=slide.dataset.y+'px';slide.style.transform='scale('+z+')';slide.style.transformOrigin='center center';prepareStagger(slide);var b=document.createElement('button');b.className='menu-item';b.innerHTML='<b>'+String(i+1).padStart(2,'0')+' · '+slide.dataset.motion+'</b>'+slide.dataset.title;b.addEventListener('click',function(){go(i);closeMenu()});menuGrid.appendChild(b)});
+  document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(Number(b.dataset.go))})});
+  function prepareStagger(slide){var title=slide.querySelectorAll('.eyebrow,h1,h2,.folio'),support=slide.querySelectorAll('.anim:not(.eyebrow):not(h1):not(h2):not(.folio):not(.detail)');Array.prototype.forEach.call(title,function(el,i){el.style.setProperty('--delay',(i*75)+'ms')});Array.prototype.forEach.call(support,function(el,i){el.style.setProperty('--delay',(230+i*76)+'ms')});Array.prototype.forEach.call(slide.querySelectorAll('.detail'),function(el,i){el.style.setProperty('--delay',(610+i*90)+'ms')});Array.prototype.forEach.call(slide.querySelectorAll('.photo-slide .visual.anim,.visual.anim'),function(el){if(el.matches('.bleed-photo'))el.style.setProperty('--delay','200ms')})}
+  function countFragments(slide){var max=0;slide.querySelectorAll('[data-fragment]').forEach(function(el){max=Math.max(max,Number(el.dataset.fragment)||0)});return max}
+  function startFragment(slide){if(!countFragments(slide))return 0;return slide.hasAttribute('data-fragment-start')?Number(slide.dataset.fragmentStart):1}
+  function revealFragment(el){el.animate([{opacity:0,filter:'blur(7px)'},{opacity:1,filter:'blur(0)'}],{duration:760,easing:'cubic-bezier(.16,1,.3,1)'});if(el.classList.contains('e-line')||el.classList.contains('e-feedback')){var path=el.querySelector('path');if(path){var length=path.getTotalLength();path.animate([{strokeDasharray:length,strokeDashoffset:length,opacity:0},{strokeDasharray:length,strokeDashoffset:0,opacity:1}],{duration:920,easing:'cubic-bezier(.2,.72,.2,1)',fill:'both'})}}}
+  function renderFragments(animateNew){var slide=slides[current];totalFragments=countFragments(slide);slide.querySelectorAll('[data-fragment]').forEach(function(el){var n=Number(el.dataset.fragment),was=el.classList.contains('shown'),visible=n<=fragmentStep;el.classList.toggle('shown',visible);el.setAttribute('aria-hidden',visible?'false':'true');if(visible&&!was&&animateNew)revealFragment(el);if(el.classList.contains('tl-row'))el.classList.toggle('past',visible&&n<fragmentStep)});var info=slide.querySelector('.step-hint');if(info){var remaining=totalFragments-fragmentStep;info.classList.toggle('complete',remaining===0);info.textContent=remaining===0?'Secuencia completa':'Pulse siguiente · '+remaining+' '+(remaining===1?'paso':'pasos')+' por revelar'}stepNo.textContent=totalFragments?'· '+fragmentStep+'/'+totalFragments:'';nextBtn.classList.toggle('has-step',fragmentStep<totalFragments);nextBtn.setAttribute('aria-label',fragmentStep<totalFragments?'Revelar paso '+(fragmentStep+1)+' de '+totalFragments:'Siguiente diapositiva');nextBtn.title=nextBtn.getAttribute('aria-label');if(slide.id===''){}if(current===11){if(fragmentStep>=1)animateVote();else resetVote()}}
+  function targetCamera(i){var s=slides[i],x=Number(s.dataset.x),y=Number(s.dataset.y),z=Number(s.dataset.scale||1),vw=viewport.clientWidth,vh=viewport.clientHeight,base=Math.min(vw/1440,vh/810),fit=Number(s.dataset.fit||1),scale=base*fit/z;return{x:x+720,y:y+405,scale:scale,tx:vw/2-(x+720)*scale,ty:vh/2-(y+405)*scale}}
+  function cameraString(c,r){return'translate3d('+c.tx+'px,'+c.ty+'px,0) scale('+c.scale+') rotate('+(r==null?(c.r||0):r)+'deg)'}
+  function centeredCamera(x,y,scale,rotation){var vw=viewport.clientWidth,vh=viewport.clientHeight,rad=(rotation||0)*Math.PI/180,rx=Math.cos(rad)*x-Math.sin(rad)*y,ry=Math.sin(rad)*x+Math.cos(rad)*y;return{x:x,y:y,scale:scale,tx:vw/2-rx*scale,ty:vh/2-ry*scale,r:rotation||0}}
+  function easeInOut(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+  function easeOut(t){return 1-Math.pow(1-t,3)}
+  function mixCamera(a,b,t){return{tx:a.tx+(b.tx-a.tx)*t,ty:a.ty+(b.ty-a.ty)*t,scale:a.scale+(b.scale-a.scale)*t,r:(a.r||0)+((b.r||0)-(a.r||0))*t,x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t}}
+  function runMotion(duration,draw,onDone){var state={cancelled:false,raf:0},started=performance.now();function cleanup(){flightFX.style.opacity='0';ambientGrid.style.opacity='0';ambientGrid.style.transform='translate3d(0,0,0)'}function frame(now){if(state.cancelled)return;var p=Math.min(1,(now-started)/duration);draw(p);if(p<1){state.raf=requestAnimationFrame(frame)}else{cleanup();onDone()}}state.cancel=function(){state.cancelled=true;if(state.raf)cancelAnimationFrame(state.raf);cleanup()};state.raf=requestAnimationFrame(frame);return state}
+  function setCamera(view){world.style.transform=cameraString(view);camera=view}
+  function activate(index,previous){slides.forEach(function(s,i){s.classList.toggle('active',i===index);s.classList.toggle('departing',i===previous&&previous!==index);s.classList.remove('scene-ready');s.setAttribute('aria-hidden',(i===index||i===previous)?'false':'true')});if(sceneTimer){clearTimeout(sceneTimer);sceneTimer=null}}
+  function finish(index){if(index!==current)return;slides.forEach(function(s){s.classList.remove('departing')});slides[index].classList.add('scene-ready');renderFragments(false)}
+  function continuousFlight(from,to,direction,done){var dx=to.x-from.x,dy=to.y-from.y,length=Math.sqrt(dx*dx+dy*dy)||1,arc=Math.min(260,length*.055)*direction,nx=-dy/length,ny=dx/length,duration=viewport.clientWidth<=800?1080:1320;return runMotion(duration,function(p){var q=easeInOut(p),curve=Math.sin(Math.PI*q),x=from.x+dx*q+nx*arc*curve,y=from.y+dy*q+ny*arc*curve,scale=from.scale+(to.scale-from.scale)*q,rotation=direction*.45*curve;setCamera(centeredCamera(x,y,scale,rotation))},done)}
+  function editorialFade(from,to,done){var duration=viewport.clientWidth<=800?820:980;flightFX.style.background='var(--navy)';return runMotion(duration,function(p){var cover=p<.5?easeInOut(p*2):easeInOut((1-p)*2);flightFX.style.opacity=String(cover);if(p<.5){setCamera(from)}else{var q=easeOut((p-.5)*2),scale=to.scale*(.97+.03*q);setCamera(centeredCamera(to.x,to.y,scale,0))}},done)}
+  function parallaxDrift(from,to,direction,done){var dx=to.x-from.x,dy=to.y-from.y,duration=viewport.clientWidth<=800?1020:1260;return runMotion(duration,function(p){var q=easeInOut(p),curve=Math.sin(Math.PI*q),x=from.x+dx*q-dy*.025*curve,y=from.y+dy*q+dx*.025*curve,scale=from.scale+(to.scale-from.scale)*q;setCamera(centeredCamera(x,y,scale,0));ambientGrid.style.opacity=String(.08+.18*curve);ambientGrid.style.transform='translate3d('+(direction*(-20+40*q))+'px,'+(-12+24*q)+'px,0)'},done)}
+  function nextTransitionKind(){var kind=transitionCursor%3;transitionCursor++;if(kind===lastTransition)kind=(kind+1)%3;lastTransition=kind;return kind}
+  function flyTo(index,animate,previous){var to=targetCamera(index),from=camera||to;if(flight){flight.cancel();flight=null}if(sceneTimer){clearTimeout(sceneTimer);sceneTimer=null}flightFX.style.opacity='0';ambientGrid.style.opacity='0';if(animate){var direction=index>=previous?1:-1,kind=nextTransitionKind(),done=function(){setCamera(to);flight=null;finish(index)};if(kind===0)flight=continuousFlight(from,to,direction,done);else if(kind===1)flight=editorialFade(from,to,done);else flight=parallaxDrift(from,to,direction,done)}else{setCamera(to);requestAnimationFrame(function(){requestAnimationFrame(function(){finish(index)})})}}
+  function updateChrome(){currentNo.textContent=current+1;progress.style.width=(current/(slides.length-1)*100)+'%';document.title=slides[current].dataset.title+' – Sociología Política'}
+  function go(i,fromBack){var nextIndex=Math.max(0,Math.min(slides.length-1,i)),previous=current,initial=!camera;if(nextIndex===current&&!initial)return;current=nextIndex;totalFragments=countFragments(slides[current]);fragmentStep=fromBack?totalFragments:startFragment(slides[current]);renderFragments(false);activate(current,initial?null:previous);flyTo(current,!initial,previous);updateChrome()}
+  function next(){totalFragments=countFragments(slides[current]);if(fragmentStep<totalFragments){fragmentStep++;renderFragments(true);return}if(current<slides.length-1)go(current+1)}
+  function prev(){if(fragmentStep>startFragment(slides[current])){fragmentStep--;renderFragments(false);return}if(current>0)go(current-1,true)}
+  function resetVote(){var el=document.getElementById('voteCount');if(!el)return;if(countFrame){cancelAnimationFrame(countFrame);countFrame=null}el.dataset.done='0';el.textContent='0,0';document.querySelectorAll('#tickRuler .tick').forEach(function(t){t.classList.remove('on')})}
+  function animateVote(){var el=document.getElementById('voteCount');if(!el||el.dataset.done==='1')return;el.dataset.done='1';if(countFrame)cancelAnimationFrame(countFrame);var start=performance.now(),duration=1200,target=51.9,ticks=document.querySelectorAll('#tickRuler .tick');function frame(now){var x=Math.min(1,(now-start)/duration),e=x===1?1:1-Math.pow(2,-10*x),v=target*e;el.textContent=v.toFixed(1).replace('.',',');var on=Math.round(ticks.length*e);ticks.forEach(function(t,i){t.classList.toggle('on',i<on)});if(x<1)countFrame=requestAnimationFrame(frame);else countFrame=null}countFrame=requestAnimationFrame(frame)}
+  function openMenu(){menu.classList.add('open');document.getElementById('closeMenu').focus()}function closeMenu(){menu.classList.remove('open');document.getElementById('menuBtn').focus()}
+  document.getElementById('nextBtn').addEventListener('click',next);document.getElementById('prevBtn').addEventListener('click',prev);document.getElementById('menuBtn').addEventListener('click',openMenu);document.getElementById('closeMenu').addEventListener('click',closeMenu);menu.addEventListener('click',function(e){if(e.target===menu)closeMenu()});
+  var fullBtn=document.getElementById('fullBtn');
+  function fullscreenElement(){return document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement}
+  function setPseudoFullscreen(on){document.body.classList.toggle('pseudo-fullscreen',on);syncFullscreen()}
+  function enterFullscreen(){setPseudoFullscreen(true);var el=document.documentElement,request=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen;if(!request){el=viewport;request=el.requestFullscreen||el.webkitRequestFullscreen||el.msRequestFullscreen}if(!request)return;function verifyNative(){if(!fullscreenElement())setPseudoFullscreen(true);else syncFullscreen()}try{var result=request.call(el,{navigationUI:'hide'});if(result&&result.then)result.then(verifyNative).catch(function(){setPseudoFullscreen(true)});else setTimeout(verifyNative,320)}catch(err){try{var retry=request.call(el);if(retry&&retry.then)retry.then(verifyNative).catch(function(){setPseudoFullscreen(true)});else setTimeout(verifyNative,320)}catch(err2){setPseudoFullscreen(true)}}}
+  function exitFullscreen(){var nativeOn=!!fullscreenElement(),exit=document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen;setPseudoFullscreen(false);if(nativeOn&&exit){try{var result=exit.call(document);if(result&&result.catch)result.catch(function(){syncFullscreen()})}catch(err){syncFullscreen()}}}
+  function syncFullscreen(){var on=!!fullscreenElement()||document.body.classList.contains('pseudo-fullscreen');fullBtn.setAttribute('aria-label',on?'Salir de pantalla completa':'Pantalla completa');fullBtn.title=fullBtn.getAttribute('aria-label');fullBtn.classList.toggle('is-full',on);camera=targetCamera(current);world.style.transform=cameraString(camera)}
+  fullBtn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();(fullscreenElement()||document.body.classList.contains('pseudo-fullscreen'))?exitFullscreen():enterFullscreen()});document.addEventListener('fullscreenchange',syncFullscreen);document.addEventListener('webkitfullscreenchange',syncFullscreen);
+  document.addEventListener('keydown',function(e){if(menu.classList.contains('open')){if(e.key==='Escape')closeMenu();return}if(['ArrowRight','ArrowDown','PageDown',' '].indexOf(e.key)>-1){e.preventDefault();next()}else if(['ArrowLeft','ArrowUp','PageUp'].indexOf(e.key)>-1){e.preventDefault();prev()}else if(e.key==='Home')go(0);else if(e.key==='End')go(slides.length-1);else if(e.key==='i'||e.key==='I')openMenu()});
+  viewport.addEventListener('pointerdown',function(e){touchStart={x:e.clientX,y:e.clientY,t:Date.now()}});viewport.addEventListener('pointerup',function(e){if(!touchStart)return;var dx=e.clientX-touchStart.x,dy=e.clientY-touchStart.y,dt=Date.now()-touchStart.t;touchStart=null;if(dt<900&&Math.abs(dx)>70&&Math.abs(dx)>Math.abs(dy)*1.2)(dx<0?next:prev)()});window.addEventListener('resize',function(){camera=targetCamera(current);world.style.transform=cameraString(camera,0)});setTimeout(function(){document.getElementById('hint').classList.add('hide')},5200);go(0);
+})();
+</script>
+</body></html>
