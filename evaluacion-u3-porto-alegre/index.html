@@ -63,33 +63,39 @@
   .no { color: #b91c1c; font-weight: 700; }
   .reveal-btn { background: #92400e; color: #fff; }
   .reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(146,64,14,.30); }
-  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideIn { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes fadeScale { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
-  .screen-cover { animation: fadeScale .6s cubic-bezier(.22,1,.36,1) both; }
-  .screen-moment { animation: slideIn .55s cubic-bezier(.22,1,.36,1) both; }
-  .screen-write, .screen-close { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
-  .screen-q { animation: fadeScale .4s ease both; }
-  .screen-q .opt { animation: rise .45s cubic-bezier(.22,1,.36,1) both; }
-  .screen-q .opt:nth-of-type(1) { animation-delay: 60ms; }
-  .screen-q .opt:nth-of-type(2) { animation-delay: 130ms; }
-  .screen-q .opt:nth-of-type(3) { animation-delay: 200ms; }
-  .screen-q .opt:nth-of-type(4) { animation-delay: 270ms; }
-  .screen-map { animation: fadeScale .4s ease both; }
-  .screen-map .mapitem { animation: rise .45s cubic-bezier(.22,1,.36,1) both; }
-  .screen-map .mapitem:nth-of-type(1) { animation-delay: 60ms; }
-  .screen-map .mapitem:nth-of-type(2) { animation-delay: 120ms; }
-  .screen-map .mapitem:nth-of-type(3) { animation-delay: 180ms; }
-  .screen-map .mapitem:nth-of-type(4) { animation-delay: 240ms; }
-  .screen-map .mapitem:nth-of-type(5) { animation-delay: 300ms; }
-  .screen-map .mapitem:nth-of-type(6) { animation-delay: 360ms; }
-  .screen-map .mapitem:nth-of-type(7) { animation-delay: 420ms; }
-  .screen-reveal { animation: fadeScale .4s ease both; }
-  .screen-reveal .rev, .screen-reveal .cmp { animation: rise .5s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes riseBig { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideInBig { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes fadeScaleBig { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+  @keyframes kenburns { from { transform: scale(1.06); } to { transform: scale(1); } }
+  @keyframes ctaPulse { 0% { box-shadow: 0 0 0 0 rgba(29,78,216,.35); } 70% { box-shadow: 0 0 0 16px rgba(29,78,216,0); } 100% { box-shadow: 0 0 0 0 rgba(29,78,216,0); } }
+  @keyframes sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  .bar > div { position: relative; overflow: hidden; }
+  .bar > div::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation: sheen 2.2s ease-in-out infinite; }
+  .next { animation: ctaPulse 2.6s ease-out infinite; }
+  .next:disabled { animation: none; }
+  .screen-cover { animation: fadeScaleBig .7s cubic-bezier(.22,1,.36,1) both; }
+  .screen-cover .photo, .screen-moment .photo { animation: kenburns 1.4s cubic-bezier(.22,1,.36,1) both; }
+  .screen-moment { animation: slideInBig .6s cubic-bezier(.22,1,.36,1) both; }
+  .screen-write, .screen-close { animation: riseBig .65s cubic-bezier(.22,1,.36,1) both; }
+  .screen-q { animation: fadeScaleBig .5s ease both; }
+  .screen-q .opt { animation: riseBig .55s cubic-bezier(.22,1,.36,1) both; }
+  .screen-q .opt:nth-of-type(1) { animation-delay: 110ms; }
+  .screen-q .opt:nth-of-type(2) { animation-delay: 220ms; }
+  .screen-q .opt:nth-of-type(3) { animation-delay: 330ms; }
+  .screen-q .opt:nth-of-type(4) { animation-delay: 440ms; }
+  .screen-map { animation: fadeScaleBig .5s ease both; }
+  .screen-map .mapitem { animation: riseBig .55s cubic-bezier(.22,1,.36,1) both; }
+  .screen-map .mapitem:nth-of-type(1) { animation-delay: 100ms; }
+  .screen-map .mapitem:nth-of-type(2) { animation-delay: 200ms; }
+  .screen-map .mapitem:nth-of-type(3) { animation-delay: 300ms; }
+  .screen-map .mapitem:nth-of-type(4) { animation-delay: 400ms; }
+  .screen-map .mapitem:nth-of-type(5) { animation-delay: 500ms; }
+  .screen-map .mapitem:nth-of-type(6) { animation-delay: 600ms; }
+  .screen-map .mapitem:nth-of-type(7) { animation-delay: 700ms; }
+  .screen-reveal { animation: fadeScaleBig .5s ease both; }
+  .screen-reveal .rev, .screen-reveal .cmp { animation: riseBig .65s cubic-bezier(.22,1,.36,1) both; }
   @media (prefers-reduced-motion: reduce) {
-    .screen-cover, .screen-moment, .screen-write, .screen-close, .screen-q,
-    .screen-q .opt, .screen-map, .screen-map .mapitem, .screen-reveal .rev,
-    .screen-reveal .cmp { animation: none; }
+    .wrap, .wrap * { animation: none !important; }
   }
   @media (max-width: 640px) {
     h1 { font-size: 32px; } h2 { font-size: 26px; }
