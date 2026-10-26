@@ -64,27 +64,39 @@
   .reveal-btn { background: #92400e; color: #fff; }
   .reveal-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(146,64,14,.30); }
   @keyframes riseBig { from { opacity: 0; transform: translateY(34px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes slideInBig { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: translateX(0); } }
   @keyframes fadeScaleBig { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
   @keyframes kenburnsLoop { from { transform: scale(1); } to { transform: scale(1.07); } }
   @keyframes ctaPulse { 0% { box-shadow: 0 0 0 0 rgba(29,78,216,.35); } 70% { box-shadow: 0 0 0 16px rgba(29,78,216,0); } 100% { box-shadow: 0 0 0 0 rgba(29,78,216,0); } }
   @keyframes sheen { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+  @keyframes pageSlide { from { opacity: 0; transform: translateX(56px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes dealIn { from { opacity: 0; transform: translateY(44px) rotate(-1deg); } to { opacity: 1; transform: translateY(0) rotate(0); } }
+  @keyframes rowIn { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes focusIn { from { opacity: 0; transform: scale(.985); } to { opacity: 1; transform: scale(1); } }
+  @keyframes dropIn { from { opacity: 0; transform: translateY(-26px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes popIn { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
+  @keyframes verdictUp { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: translateY(0); } }
   .bar > div { position: relative; overflow: hidden; }
   .bar > div::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation: sheen 2.2s ease-in-out infinite; }
   .next { animation: ctaPulse 2.6s ease-out infinite; }
   .next:disabled { animation: none; }
-  .screen-cover { animation: fadeScaleBig .7s cubic-bezier(.22,1,.36,1) both; }
-  .screen-cover .photo, .screen-moment .photo { animation: kenburnsLoop 9s ease-in-out infinite alternate; }
-  .screen-moment { animation: slideInBig .6s cubic-bezier(.22,1,.36,1) both; }
-  .screen-write, .screen-close { animation: riseBig .65s cubic-bezier(.22,1,.36,1) both; }
-  .screen-q { animation: fadeScaleBig .5s ease both; }
-  .screen-q .opt { animation: riseBig .55s cubic-bezier(.22,1,.36,1) both; }
+  /* Portada: foto en bucle + título en cascada */
+  .screen-cover { animation: fadeScaleBig .7s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-cover .photo { animation: kenburnsLoop 9s ease-in-out infinite alternate; }
+  .screen-cover .kicker { animation: riseBig .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-cover h1 { animation: riseBig .6s .12s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-cover .card { animation: riseBig .6s .24s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-cover .btnrow { animation: riseBig .6s .36s cubic-bezier(.22,1,.36,1) backwards; }
+  /* Momento: foto pasa la página, texto sube con retraso */
+  .screen-moment .photo { animation: pageSlide .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-moment .card { animation: riseBig .6s .25s cubic-bezier(.22,1,.36,1) backwards; }
+  /* Pregunta: opciones repartidas como cartas, con rebote */
+  .screen-q .opt { animation: dealIn .5s cubic-bezier(.34,1.56,.64,1) backwards; }
   .screen-q .opt:nth-of-type(1) { animation-delay: 110ms; }
   .screen-q .opt:nth-of-type(2) { animation-delay: 220ms; }
   .screen-q .opt:nth-of-type(3) { animation-delay: 330ms; }
   .screen-q .opt:nth-of-type(4) { animation-delay: 440ms; }
-  .screen-map { animation: fadeScaleBig .5s ease both; }
-  .screen-map .mapitem { animation: riseBig .55s cubic-bezier(.22,1,.36,1) both; }
+  /* Mapa: filas escritas desde la izquierda */
+  .screen-map .mapitem { animation: rowIn .55s cubic-bezier(.22,1,.36,1) backwards; }
   .screen-map .mapitem:nth-of-type(1) { animation-delay: 100ms; }
   .screen-map .mapitem:nth-of-type(2) { animation-delay: 200ms; }
   .screen-map .mapitem:nth-of-type(3) { animation-delay: 300ms; }
@@ -92,8 +104,14 @@
   .screen-map .mapitem:nth-of-type(5) { animation-delay: 500ms; }
   .screen-map .mapitem:nth-of-type(6) { animation-delay: 600ms; }
   .screen-map .mapitem:nth-of-type(7) { animation-delay: 700ms; }
-  .screen-reveal { animation: fadeScaleBig .5s ease both; }
-  .screen-reveal .rev, .screen-reveal .cmp { animation: riseBig .65s cubic-bezier(.22,1,.36,1) both; }
+  /* Escritura: aparición quieta */
+  .screen-write { animation: focusIn .6s ease backwards; }
+  /* Cierre: tarjeta cae desde arriba, botón aparece con golpe */
+  .screen-close { animation: dropIn .55s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-close .reveal-btn { animation: popIn .5s .3s cubic-bezier(.34,1.56,.64,1) backwards; }
+  /* Revelación: bloques con fuerza + marcas con golpe */
+  .screen-reveal .rev, .screen-reveal .cmp { animation: verdictUp .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .screen-reveal .ok, .screen-reveal .no { display: inline-block; animation: popIn .45s .5s cubic-bezier(.34,1.56,.64,1) backwards; }
   @media (max-width: 640px) {
     h1 { font-size: 32px; } h2 { font-size: 26px; }
     p, li { font-size: 20px; } .opt { font-size: 19px; }
