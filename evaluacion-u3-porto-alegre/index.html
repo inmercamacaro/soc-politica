@@ -115,6 +115,24 @@
   /* Revelación: bloques con fuerza + marcas con golpe */
   .screen-reveal .rev, .screen-reveal .cmp { animation: verdictUp .6s cubic-bezier(.22,1,.36,1) backwards; }
   .screen-reveal .ok, .screen-reveal .no { display: inline-block; animation: popIn .45s .5s cubic-bezier(.34,1.56,.64,1) backwards; }
+  .fs-btn { position: fixed; top: 12px; right: 12px; z-index: 50; background: rgba(28,25,23,.88); color: #fff; border: none; border-radius: 99px; padding: 9px 14px; font-size: 15px; font-weight: 600; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+  .fs-btn:hover { background: #000; }
+  .screen-portada { max-width: none; padding: 0; }
+  .portada { position: relative; min-height: 100svh; display: flex; flex-direction: column; overflow: hidden; }
+  .portada-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: kenburnsLoop 12s ease-in-out infinite alternate; }
+  .portada-scrim { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,.15) 55%, rgba(0,0,0,.78) 100%); }
+  .portada-top { position: relative; padding: 28px 28px 0; animation: riseBig .6s cubic-bezier(.22,1,.36,1) backwards; }
+  .portada-logo { height: 64px; width: auto; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+  .portada-text { position: relative; margin-top: auto; padding: 0 28px 24px; color: #fff; }
+  .portada-text .kicker { color: #fcd34d; animation: riseBig .6s .1s cubic-bezier(.22,1,.36,1) backwards; }
+  .portada-text h1 { font-size: clamp(38px, 9vw, 64px); color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.55); animation: riseBig .6s .22s cubic-bezier(.22,1,.36,1) backwards; }
+  .portada-meta { font-size: 19px; font-weight: 600; text-shadow: 0 1px 8px rgba(0,0,0,.55); margin-bottom: 4px; animation: riseBig .6s .34s cubic-bezier(.22,1,.36,1) backwards; }
+  .portada-text .btnrow { margin-top: 18px; animation: riseBig .6s .46s cubic-bezier(.22,1,.36,1) backwards; }
+  .portada-credit { position: relative; padding: 0 28px 16px; color: rgba(255,255,255,.78); font-size: 13px; }
+  @media (min-width: 900px) {
+    .portada-text { display: flex; flex-direction: row; align-items: flex-end; justify-content: space-between; gap: 32px; }
+    .portada-text .btnrow { flex-shrink: 0; margin-top: 0; }
+  }
   @media (max-width: 640px) {
     h1 { font-size: 32px; } h2 { font-size: 26px; }
     p, li { font-size: 20px; } .opt { font-size: 19px; }
@@ -123,6 +141,7 @@
 </style>
 </head>
 <body>
+<button class="fs-btn" id="fsBtn" onclick="toggleFS()">⛶ Pantalla completa</button>
 <div class="wrap" id="app"></div>
 <script>
 const MOMENTS = [
@@ -185,8 +204,8 @@ const REALITY = [
   { t: "Teoría", d: "Voluntarismo cívico (las redes vecinales reclutan, con recursos y motivación) y democracia participativa (participar forma ciudadanía y acerca las decisiones)." },
   { t: "Resultados", d: "Agua y alcantarillado del 75% (1988) al 98% (1997); alcantarillado del 46% (1989) al 85% (1996). El modelo se replicó en cientos de ciudades del mundo." }
 ];
-// Flujo: portada, por cada momento: texto, preguntas, mapa; escritura; cierre; revelación
-let flow = ["cover"];
+// Flujo: portada formal, introducción, por cada momento: texto, preguntas, mapa; escritura; cierre; revelación
+let flow = ["portada", "cover"];
 MOMENTS.forEach((m, i) => {
   flow.push("moment" + i);
   QUESTIONS.forEach((q, qi) => { if (q.moment === i) flow.push("q" + qi); });
@@ -209,20 +228,37 @@ function navHTML(back, nextLabel, nextDisabled){
 }
 function render(){
   const key = flow[step];
-  app.className = "wrap " + (key === "cover" ? "screen-cover"
+  app.className = "wrap " + (key === "portada" ? "screen-portada"
+    : key === "cover" ? "screen-cover"
     : key.startsWith("moment") ? "screen-moment"
     : key.startsWith("q") ? "screen-q"
     : key.startsWith("map") ? "screen-map"
     : key === "write" ? "screen-write"
     : key === "close" ? "screen-close" : "screen-reveal");
-  let h = progressHTML();
-  if (key === "cover"){
+  let h = key === "portada" ? "" : progressHTML();
+  if (key === "portada"){
+    h += '<div class="portada">' +
+      '<img class="portada-bg" src="assets/portada-ciudad.webp" alt="Centro de Porto Alegre visto desde el río Guaíba">' +
+      '<div class="portada-scrim"></div>' +
+      '<div class="portada-top"><img class="portada-logo" src="assets/logo_uft.webp" alt="Universidad Fermín Toro"></div>' +
+      '<div class="portada-text">' +
+      '<div class="portada-copy">' +
+      '<div class="kicker">Universidad Fermín Toro · Escuela de Ciencia Política</div>' +
+      '<h1>El presupuesto participativo de Porto Alegre</h1>' +
+      '<p class="portada-meta">Evaluación · Unidad III · Sociología Política</p>' +
+      '<p class="portada-meta">Prof. Inmer J. Camacaro C. · 29 de octubre de 2026</p>' +
+      '</div>' +
+      '<div class="btnrow"><button class="nav next" onclick="go(1)">Entrar</button></div>' +
+      '</div>' +
+      '<div class="portada-credit">Foto: Ricardo Rmx, CC BY-SA 3.0, vía Wikimedia Commons</div>' +
+      '</div>';
+  } else if (key === "cover"){
     h += '<figure class="photo"><img src="assets/portada-asamblea.webp" alt="Vecinos y delegados en una asamblea del Presupuesto Participativo de Porto Alegre"><figcaption>Asamblea del Presupuesto Participativo, Porto Alegre. Foto: Banco de Imágenes, Prefeitura de Porto Alegre.</figcaption></figure>' +
       '<div class="kicker">Evaluación · Unidad III · Sociología Política</div>' +
       '<h1>El presupuesto participativo de Porto Alegre</h1>' +
       '<div class="card"><p>Un caso real de participación política. Vas a recorrerlo en 3 momentos. En cada momento responderás preguntas eligiendo una opción.</p>' +
       '<p>La pantalla <strong>no te dirá si acertaste</strong>: tus respuestas se guardan y se revisan solo al final.</p></div>' +
-      '<div class="btnrow"><button class="nav next" onclick="go(1)">Comenzar</button></div>';
+      navHTML(true, "Comenzar");
   } else if (key.startsWith("moment")){
     const m = MOMENTS[+key.slice(6)];
     h += '<div class="kicker">' + esc(m.tag) + '</div><h2>Lee con atención</h2>' +
@@ -297,6 +333,17 @@ function go(d){
   step = Math.min(Math.max(step + d, 0), flow.length - 1);
   render();
 }
+function toggleFS(){
+  if (document.fullscreenElement){ document.exitFullscreen(); }
+  else { document.documentElement.requestFullscreen(); }
+}
+document.addEventListener("fullscreenchange", () => {
+  const b = document.getElementById("fsBtn");
+  if (b) b.textContent = document.fullscreenElement ? "\u26f6 Salir de pantalla completa" : "\u26f6 Pantalla completa";
+});
+document.addEventListener("keydown", (e) => {
+  if ((e.key === "f" || e.key === "F") && !e.target.matches("textarea, input")) toggleFS();
+});
 render();
 </script>
 </body>
